@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from models.blog_model import BlogModel
+from models.blog_model import BlogModel, UpdateBlogModel
 from config.config import blogs_collection
 import datetime
 from data.getblog import decode_all, decodeblog
@@ -25,3 +25,17 @@ async def get_blog(id: str):
         return decodeblog(data)
     else:
         return {'message': 'Blog not found'}
+    
+@blog_router.put('/update/{id}')
+async def update(id: str, blog: UpdateBlogModel):
+    data = dict(blog.model_dump(exclude_unset=True))
+    blogs_collection.find_one_and_update(
+        {'_id': ObjectId(id)},
+        {'$set': data})
+
+    return ({'message':'Blog updated'})
+
+@blog_router.delete('/delete/{id}')
+async def delete(id: str):
+    blogs_collection.delete_one({'_id': ObjectId(id)})
+    return {'message':'Blog deleted'}
